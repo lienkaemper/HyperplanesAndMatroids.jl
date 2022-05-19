@@ -12,10 +12,35 @@ export SignVector, from_hyperplanes
 
 #---------------Sign Vector Stuff------------------------#
 
+"""
+    SignVector
+
+A SignVector represents a vector w/ real entries,
+designed to be equal if and only if they have the same signs
+
+Example:
+
+```julia> SignVector([0, 1, -1, -1])
+0+--```
+
+
+
+"""
 struct SignVector
-    vec::Array{Int64}
+    vec::Array{Int8}
 end
 
+"""
+    SignVector(str::String)
+
+Construct a sign vector from a string with characters '0', '+', '-'
+
+Examples:
+
+```julia> SignVector("0+--")
+0+--```
+
+"""
 function SignVector(str::String)
     vec = zeros(length(str))
     for i in 1:length(str)
@@ -28,16 +53,21 @@ function SignVector(str::String)
     return SignVector(vec)
 end
 
-#print sign vectors good
+"""
+    Base.show(io::IO, X::SignVector)
+
+Pretty printing for sign vectors
+
+"""
 function Base.show(io::IO, X::SignVector)
     str = ""
     V = X.vec
     for i in V
-        if i == -1
+        if i < 0
             str = str*"-"
-        elseif i == 1
+        elseif i > 0
             str = str*"+"
-        else i == 0
+        elseif i == 0
             str = str*"0"
         end
     end
@@ -71,18 +101,43 @@ end
 
 #----------------Sign Vector Tools--------------------------#
 
+"""
+    positivePart(X::SignVector)
+
+Returns the positive part of a sign vector, i.e. {i ∣ X_i = +}
+
+"""
 function positivePart(X::SignVector)
     return(findall(x-> x> 0, X.vec))
 end
 
+
+"""
+    negativePart(X::SignVector)
+
+Returns the positive part of a sign vector, i.e. {i ∣ X_i = -}
+
+"""
 function negativePart(X::SignVector)
     return(findall(x-> x< 0, X.vec))
 end
 
+"""
+    support(X::SignVector)
+
+Returns the support of a sign vector, i.e. {i ∣ X_i ≠ 0}
+
+"""
 function support(X::SignVector)
     return(findall(x-> x!= 0, X.vec))
 end
 
+"""
+    zeroPart(X::SignVector)
+
+Returns the zero part of a sign vector, i.e. {i ∣ X_i = 0}
+
+"""
 function zeroPart(X::SignVector)
     return(findall(x-> x== 0, X.vec))
 end
