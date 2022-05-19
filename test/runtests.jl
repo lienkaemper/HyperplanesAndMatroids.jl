@@ -5,10 +5,10 @@ using Test
 @testset "HyperplanesAndMatroids.jl" begin
     # Write your tests here.
     h_degen = [1 0; -1 0; 0 1; -1 1; 1 1]
-    M_non_uniform = HyperplanesAndMatroids.fromHyperplanes(h_degen)
+    M_non_uniform = from_hyperplanes(h_degen)
     @testset "topes" begin
       @test hasproperty(M_non_uniform, :topes) == true
-      @test issetequal(M_non_uniform.topes, HyperplanesAndMatroids.SignVector.(["+----", "+---+", "-+++-", "-++++", "+-+++", "+-+-+", "-+-+-", "-+---"]))
+      @test issetequal(M_non_uniform.topes, SignVector.(["+----", "+---+", "-+++-", "-++++", "+-+++", "+-+-+", "-+-+-", "-+---"]))
     end
     @testset "chirotope" begin
       @test M_non_uniform.chirotope == Dict(
@@ -28,7 +28,12 @@ using Test
         @test issetequal(M_non_uniform.cocircuits[[1,2,3,4]], HyperplanesAndMatroids.SignVector.(["+---0", "-+++0"]))
       end
       @testset "circuits" begin
-        @test issetequal(M_non_uniform.circuits[[1,2]], HyperplanesAndMatroids.SignVector.(["++000", "--000"]))
-        @test issetequal(M_non_uniform.circuits[[3,4,5]], HyperplanesAndMatroids.SignVector.(["00+--", "00-++"]))
+        χ = M_non_uniform.chirotope
+        σ = [3, 4]
+        e = 5
+        n = 5
+        @test HyperplanesAndMatroids.basic_circuit(χ, σ, e, n) == SignVector("00-++")
+        @test issetequal(M_non_uniform.circuits[[1,2]], SignVector.(["++000", "--000"]))
+        @test issetequal(M_non_uniform.circuits[[3,4,5]], SignVector.(["00+--", "00-++"]))
       end
 end

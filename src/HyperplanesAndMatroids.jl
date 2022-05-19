@@ -7,6 +7,9 @@ using LinearAlgebra
 
 __precompile__()
 
+export SignVector, from_hyperplanes
+
+
 #---------------Sign Vector Stuff------------------------#
 
 struct SignVector
@@ -212,7 +215,7 @@ function setTopes!(M,topes::String)
 end
 
 function setCircuits!(M,circuits::Vector)
-    values = SignVector.(circuits)
+    values = circuits
     M.circuits = Dict{Array{Int}, Array{SignVector}}()
     for circuit in values
         supp = support(circuit)
@@ -239,7 +242,7 @@ function setCircuits!(M,circuits::String)
     return M
 end
 
-function setCoCircuits!(M,cocircuits::Vector{SignVector})
+function setCoCircuits!(M,cocircuits::Vector)
     values = cocircuits
     M.cocircuits = Dict{Array{Int}, Array{SignVector}}()
     for cocircuit in values
@@ -304,6 +307,19 @@ function basic_cocircuit(χ, σ, e,n)
     return signature
 end
 
+#returns the unique signed cocircuit which is disjoint from χ∖e, positve on e
+function basic_circuit(χ, σ, e,n)
+    signature =  SignVector(zeros(n))
+    signature[e] = 1
+    for f in σ
+        δ = setdiff(σ, [f])
+        a = [δ ;[e]]
+        b = [δ ;[f]]
+        signature[f] = -1 * χ[sort(b)] * comp_sign(δ, f)* χ[sort(a)] * comp_sign(δ, e)
+    end
+    return signature
+end
+
 #given chirotope, return cocircuits as list of sign vectors
 function cocircuits(χ, n)
     cocircs = Vector{SignVector}()
@@ -318,6 +334,22 @@ function cocircuits(χ, n)
         end
     end
     return cocircs
+end
+
+#given chirotope, return cocircuits as list of sign vectors
+function circuits(χ, n)
+    circs = Vector{SignVector}()
+    for (σ, sgn) in χ
+        if sgn != 0
+            for e in setdiff(collect(1:n), σ)
+                signature = basic_circuit(χ, σ, e, n)
+                if signature ∉ circs
+                    append!(circs, [signature, -signature])
+                end
+            end
+        end
+    end
+    return circs
 end
 
 #return topes of rank r matroid on ground set n with chirotope χ.
@@ -417,11 +449,18 @@ function chirotopeToTopes!(M)
     M.topes = topes(χ, n, r)
 end
 
-function chirotopeToCocircuits!(M)
+function chirotopeToCoCircuits!(M)
     χ = M.chirotope
     n = M.n
     r = M.r
     setCoCircuits!(M, cocircuits(χ, n))
+end
+
+function chirotopeToCircuits!(M)
+    χ = M.chirotope
+    n = M.n
+    r = M.r
+    setCircuits!(M, circuits(χ, n))
 end
 
 #input: hyperplane arrangement, rows are hyperplane normals
@@ -438,13 +477,14 @@ function chirotope(ha)
     return chirotope
 end
 
-function fromHyperplanes(ha)
+function from_hyperplanes(ha)
     M = OrientedMatroid()
     M.n = size(ha, 1)
     M.r = rank(ha)
     M.chirotope = chirotope(ha)
     chirotopeToTopes!(M)
-    chirotopeToCocircuits!(M)
+    chirotopeToCoCircuits!(M)
+    chirotopeToCircuits!(M)
     return M
 end
 
