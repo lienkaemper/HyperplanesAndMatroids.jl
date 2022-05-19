@@ -1,6 +1,7 @@
 using HyperplanesAndMatroids
 using Documenter
 
+
 DocMeta.setdocmeta!(HyperplanesAndMatroids, :DocTestSetup, :(using HyperplanesAndMatroids); recursive=true)
 
 makedocs(;
