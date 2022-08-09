@@ -7,7 +7,7 @@ using LinearAlgebra
 
 __precompile__()
 
-export SignVector, from_hyperplanes
+export SignVector, from_hyperplanes, chirotope, sep
 
 
 #---------------Sign Vector Stuff------------------------#
@@ -167,16 +167,7 @@ function orthogonal(X::SignVector, Y ::SignVector)
 end
 
 
-function composition(X::SignVector, Y::SignVector)
-    result = copy(X)
-    for i = 1:length(X)
-        if X[i]==0
-            result[i] = Y[i]
-        end
-    end
-    return result
 
-end
 
 function composition(X::SignVector, Y::SignVector)
     result = copy(X)
